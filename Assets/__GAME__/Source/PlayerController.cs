@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody), typeof(Collider))]
 public class Character : MonoBehaviour
@@ -134,7 +133,6 @@ public class Character : MonoBehaviour
         }
 
         if (input.Player.Roll.triggered && CanRoll()) StartCoroutine(RollRoutine());
-        if (input.Player.Attack.triggered && attackCDTimer <= 0f) Attack();
     }
     #endregion
 
@@ -214,47 +212,6 @@ public class Character : MonoBehaviour
         input.Enable();
         isRolling = false;
         rollCDTimer = rollCooldown;
-    }
-    #endregion
-
-    #region Attack
-    private void Attack()
-    {
-        Vector3 dir = GetAimDirection();
-        RotateInstantlyTo(dir);
-        attackCDTimer = attackCooldown;
-        Debug.DrawRay(transform.position, dir * attackRange, Color.red, 0.3f);
-
-        if (!Physics.Raycast(transform.position, dir, out RaycastHit hit, attackRange, enemyLayer)) return;
-
-        foreach (Collider c in Physics.OverlapSphere(transform.position, attackRadius, enemyLayer))
-        {
-            if (c.gameObject != hit.collider.gameObject) continue;
-            if (c.TryGetComponent(out Enemy_0 enemy)) enemy.ApplyDamage(damage);
-        }
-    }
-
-    private Vector3 GetAimDirection()
-    {
-        if (cam == null || Mouse.current == null) return transform.forward;
-
-        Vector2 mousePos = Mouse.current.position.ReadValue();
-        Ray ray = cam.ScreenPointToRay(mousePos);
-        Plane plane = new(Vector3.up, transform.position);
-        if (plane.Raycast(ray, out float dist))
-        {
-            Vector3 point = ray.GetPoint(dist);
-            Vector3 dir = point - transform.position;
-            dir.y = 0f;
-            if (dir.sqrMagnitude > 0.01f) return dir.normalized;
-        }
-        return transform.forward;
-    }
-
-    private void RotateInstantlyTo(Vector3 dir)
-    {
-        Transform pivot = model != null ? model : transform;
-        pivot.rotation = Quaternion.LookRotation(dir, Vector3.up);
     }
     #endregion
 
