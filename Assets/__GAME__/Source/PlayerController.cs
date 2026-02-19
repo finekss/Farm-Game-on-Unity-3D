@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody), typeof(Collider))]
 public class Character : MonoBehaviour
@@ -11,12 +12,14 @@ public class Character : MonoBehaviour
     private Collider col;
     private Camera cam;
     private InputSystem_Actions input;
+    private Animator animator;
     #endregion
 
     #region Model
     [Header("Model")]
     [Tooltip("Корневой Transform 3D-модели персонажа (для поворота отдельно от корня)")]
     [SerializeField] private Transform model;
+    [SerializeField] private Animator animatorOverride;
     #endregion
 
     #region MovementSettings
@@ -71,11 +74,31 @@ public class Character : MonoBehaviour
     private bool jumpConsumed;
 
     private bool isRolling;
+    private bool isJumping;
     private float rollCDTimer;
     private float invulTimer;
     private float attackCDTimer;
 
-    private readonly Plane aimPlane = new(Vector3.up, Vector3.zero);
+    #endregion
+
+    #region Animator
+    private static readonly int DirectionHash = Animator.StringToHash("Direction");
+    private static readonly int IsGroundedHash = Animator.StringToHash("IsGrounded");
+    private static readonly int IsRollingHash = Animator.StringToHash("IsRolling");
+    private static readonly int IsDeadHash = Animator.StringToHash("IsDead");
+    private static readonly int IsAirborneHash = Animator.StringToHash("IsAirborne");
+    private static readonly int CameraRotationHash = Animator.StringToHash("CameraRotation");
+    private static readonly int JumpTriggerHash = Animator.StringToHash("Jump");
+    private static readonly int RollTriggerHash = Animator.StringToHash("Roll");
+    private static readonly int HurtTriggerHash = Animator.StringToHash("Hurt");
+    private static readonly int LandTriggerHash = Animator.StringToHash("Land");
+
+    private enum AnimDirection { Idle = 0, Forward = 1, Back = 2, Left = 3, Right = 4, 
+                                  ForwardLeft = 5, ForwardRight = 6, BackLeft = 7, BackRight = 8 }
+    private AnimDirection currentDirection = AnimDirection.Idle;
+    private bool wasGrounded;
+    private bool jumpExecuted;
+    private float prevCameraYaw;
     #endregion
 
     #region Lifecycle
@@ -88,6 +111,7 @@ public class Character : MonoBehaviour
         input = new InputSystem_Actions();
         CurrentHealth = maxHealth;
         rb.freezeRotation = true;
+        animator = animatorOverride != null ? animatorOverride : GetComponentInChildren<Animator>();
     }
 
     private void OnEnable() => input.Enable();
@@ -99,6 +123,7 @@ public class Character : MonoBehaviour
         ReadInput();
         TickTimers();
         RotateModel();
+        UpdateAnimator();
     }
 
     private void FixedUpdate()
@@ -150,11 +175,17 @@ public class Character : MonoBehaviour
     #region GroundCheck
     private void CheckGround()
     {
-        bool wasGrounded = isGrounded;
         isGrounded = groundCheck != null && Physics.CheckSphere(groundCheck.position, groundCheckRadius, groundLayer);
 
-        if (isGrounded) coyoteTimer = coyoteTime;
-        else if (wasGrounded) coyoteTimer = coyoteTime;
+        if (isGrounded)
+        {
+            coyoteTimer = coyoteTime;
+            isJumping = false;
+        }
+        else if (wasGrounded)
+        {
+            coyoteTimer = coyoteTime;
+        }
 
         coyoteTimer = Mathf.Max(0f, coyoteTimer - Time.fixedDeltaTime);
     }
@@ -179,7 +210,7 @@ public class Character : MonoBehaviour
     #region Jump
     private void ApplyJump()
     {
-        bool canJump = (isGrounded || coyoteTimer > 0f) && !isRolling;
+        bool canJump = (isGrounded || coyoteTimer > 0f) && !isRolling && !isJumping;
         if (jumpBufferTimer > 0f && canJump && !jumpConsumed)
         {
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
@@ -187,6 +218,8 @@ public class Character : MonoBehaviour
             jumpConsumed = true;
             jumpBufferTimer = 0f;
             coyoteTimer = 0f;
+            isJumping = true;
+            jumpExecuted = true;
         }
     }
     #endregion
@@ -199,6 +232,7 @@ public class Character : MonoBehaviour
         isRolling = true;
         invulTimer = rollInvulTime;
         input.Disable();
+        TriggerAnimator(RollTriggerHash);
 
         Vector3 rollDir = lastNonZeroDirection;
         float elapsed = 0f;
@@ -221,6 +255,7 @@ public class Character : MonoBehaviour
         if (invulTimer > 0f || IsDead) return;
         CurrentHealth -= dmg;
         invulTimer = invulOnHitTime;
+        TriggerAnimator(HurtTriggerHash);
         if (CurrentHealth <= 0) Die();
     }
 
@@ -230,7 +265,83 @@ public class Character : MonoBehaviour
         input.Disable();
         rb.linearVelocity = Vector3.zero;
         col.enabled = false;
+        SetAnimatorBool(IsDeadHash, true);
         gameObject.SetActive(false);
+    }
+    #endregion
+
+    #region AnimatorHelpers
+    private void UpdateAnimator()
+    {
+        if (animator == null) return;
+
+        UpdateDirectionState();
+        UpdateCameraRotation();
+
+        animator.SetBool(IsAirborneHash, !isGrounded);
+
+        if (jumpExecuted)
+        {
+            TriggerAnimator(JumpTriggerHash);
+            jumpExecuted = false;
+        }
+
+        if (!wasGrounded && isGrounded)
+        {
+            TriggerAnimator(LandTriggerHash);
+        }
+
+        animator.SetBool(IsGroundedHash, isGrounded);
+        animator.SetBool(IsRollingHash, isRolling);
+        animator.SetBool(IsDeadHash, IsDead);
+
+        wasGrounded = isGrounded;
+    }
+
+    private void UpdateCameraRotation()
+    {
+        if (cam == null) return;
+        float currentYaw = cam.transform.eulerAngles.y;
+        float delta = Mathf.DeltaAngle(prevCameraYaw, currentYaw);
+        animator.SetFloat(CameraRotationHash, delta / Mathf.Max(Time.deltaTime, 0.0001f));
+        prevCameraYaw = currentYaw;
+    }
+
+    private void UpdateDirectionState()
+    {
+        if (moveInput.sqrMagnitude < 0.1f)
+        {
+            currentDirection = AnimDirection.Idle;
+        }
+        else
+        {
+            float angle = Mathf.Atan2(moveInput.x, moveInput.y) * Mathf.Rad2Deg;
+            if (angle < 0) angle += 360f;
+
+            if (angle >= 337.5f || angle < 22.5f) currentDirection = AnimDirection.Forward;
+            else if (angle >= 22.5f && angle < 67.5f) currentDirection = AnimDirection.ForwardRight;
+            else if (angle >= 67.5f && angle < 112.5f) currentDirection = AnimDirection.Right;
+            else if (angle >= 112.5f && angle < 157.5f) currentDirection = AnimDirection.BackRight;
+            else if (angle >= 157.5f && angle < 202.5f) currentDirection = AnimDirection.Back;
+            else if (angle >= 202.5f && angle < 247.5f) currentDirection = AnimDirection.BackLeft;
+            else if (angle >= 247.5f && angle < 292.5f) currentDirection = AnimDirection.Left;
+            else if (angle >= 292.5f && angle < 337.5f) currentDirection = AnimDirection.ForwardLeft;
+        }
+
+        animator.SetInteger(DirectionHash, (int)currentDirection);
+    }
+
+    private void TriggerAnimator(int triggerHash)
+    {
+        if (animator == null) return;
+        animator.ResetTrigger(triggerHash);
+        animator.SetTrigger(triggerHash);
+    }
+
+    private void SetAnimatorBool(int boolHash, bool value)
+    {
+        if (animator == null) return;
+        animator.SetBool(boolHash, value);
     }
     #endregion
 
