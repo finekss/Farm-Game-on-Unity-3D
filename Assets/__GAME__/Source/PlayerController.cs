@@ -115,8 +115,15 @@ public class Character : MonoBehaviour
     private void ReadInput()
     {
         moveInput = input.Player.Move.ReadValue<Vector2>();
-        moveDirection = new Vector3(moveInput.x, 0f, moveInput.y);
 
+        Vector3 camForward = cam != null ? cam.transform.forward : transform.forward;
+        Vector3 camRight = cam != null ? cam.transform.right : transform.right;
+        camForward.y = 0f;
+        camRight.y = 0f;
+        camForward.Normalize();
+        camRight.Normalize();
+
+        moveDirection = (camForward * moveInput.y) + (camRight * moveInput.x);
         if (moveDirection.sqrMagnitude > 1f) moveDirection.Normalize();
         if (moveDirection.sqrMagnitude > 0.01f) lastNonZeroDirection = moveDirection.normalized;
 
