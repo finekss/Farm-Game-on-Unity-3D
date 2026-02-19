@@ -20,6 +20,14 @@ public class PlayerCameraController : MonoBehaviour
     [Header("Player Rotation")]
     [SerializeField] private bool rotateTargetWithCamera = true;
 
+    [Header("Head Bone")]
+    [SerializeField] private Transform headBone;
+    [Tooltip("Смещение камеры относительно кости головы (в локальных координатах головы)")]
+    [SerializeField] private Vector3 headCameraOffset = new Vector3(0f, 0.1f, 0.1f);
+    [Tooltip("Насколько голова следует за вертикальным поворотом камеры (0-1)")]
+    [Range(0f, 1f)]
+    [SerializeField] private float headPitchWeight = 0.7f;
+
     [Header("Cursor")]
     [SerializeField] private bool lockCursor = true;
 
@@ -63,15 +71,28 @@ public class PlayerCameraController : MonoBehaviour
         smoothPitch = Mathf.SmoothDampAngle(smoothPitch, pitch, ref pitchVelocity, rotationSmoothTime);
 
         Quaternion cameraRot = Quaternion.Euler(smoothPitch, smoothYaw, 0f);
-        Vector3 desiredPos = target.TransformPoint(cameraLocalOffset);
+        Vector3 desiredPos = headBone != null
+            ? headBone.position + headBone.TransformDirection(headCameraOffset)
+            : target.TransformPoint(cameraLocalOffset);
 
         transform.position = Vector3.SmoothDamp(transform.position, desiredPos, ref positionVelocity, positionSmoothTime);
         transform.rotation = cameraRot;
 
         if (rotateTargetWithCamera)
         {
-            Quaternion targetRot = Quaternion.Euler(0f, smoothYaw, 0f);
-            target.rotation = targetRot;
+            target.rotation = Quaternion.Euler(0f, smoothYaw, 0f);
         }
+
+        ApplyHeadRotation();
+    }
+
+    private void ApplyHeadRotation()
+    {
+        if (headBone == null) return;
+
+        // Тело уже повёрнуто по yaw через target.rotation.
+        // Голове добавляем только pitch поверх текущего поворота тела.
+        Quaternion headPitch = Quaternion.Euler(smoothPitch * headPitchWeight, 0f, 0f);
+        headBone.rotation = target.rotation * headPitch;
     }
 }

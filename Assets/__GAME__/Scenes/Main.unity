@@ -278,6 +278,9 @@ MonoBehaviour:
   rotationSmoothTime: 0
   positionSmoothTime: 0
   rotateTargetWithCamera: 1
+  headBone: {fileID: 1721277053}
+  headCameraOffset: {x: 0, y: 0.1, z: 0.1}
+  headPitchWeight: 0.7
   lockCursor: 1
 --- !u!1 &410087039
 GameObject:
@@ -779,6 +782,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1721277053 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1271237639508031184, guid: 5e7ed8c0995cca845b14e1cd77ca689f, type: 3}
+  m_PrefabInstance: {fileID: 7230946290447375223}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2141587177
 GameObject:
   m_ObjectHideFlags: 0
