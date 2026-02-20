@@ -36,11 +36,12 @@ public class Character : MonoBehaviour
     #region JumpSettings
     [Header("Jump")]
     [SerializeField] private float jumpForce = 12f;
-    [Tooltip("Множитель обрезки вертикальной скорости при раннем отпускании (0.1 = короткий прыжок, 0.5 = средний)")]
+    [Tooltip("Множитель обрезки вертикальной скорости при раннем отпускании (0.1 = короткий прыжок)")]
     [Range(0.05f, 0.9f)]
     [SerializeField] private float jumpCutMultiplier = 0.35f;
     [SerializeField] private float coyoteTime = 0.12f;
     [SerializeField] private float jumpBufferTime = 0.15f;
+    [SerializeField] private float jumpCooldown = 0.8f;
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.2f;
     [SerializeField] private LayerMask groundLayer;
@@ -89,6 +90,7 @@ public class Character : MonoBehaviour
     private float coyoteTimer;
     private float jumpBufferTimer;
     private bool jumpConsumed;
+    private float jumpCDTimer;
 
     private bool isRolling;
     private bool isJumping;
@@ -209,6 +211,8 @@ public class Character : MonoBehaviour
         invulTimer = Mathf.Max(0f, invulTimer - dt);
         rollCDTimer = Mathf.Max(0f, rollCDTimer - dt);
         jumpBufferTimer = Mathf.Max(0f, jumpBufferTimer - dt);
+        jumpCDTimer = Mathf.Max(0f, jumpCDTimer - dt);
+
     }
     #endregion
 
@@ -258,7 +262,7 @@ public class Character : MonoBehaviour
     #region Jump
     private void ApplyJump()
     {
-        bool canJump = (isGrounded || coyoteTimer > 0f) && !isRolling && !isJumping;
+        bool canJump = (isGrounded || coyoteTimer > 0f) && !isRolling && !isJumping && jumpCDTimer <= 0f;
         if (jumpBufferTimer > 0f && canJump && !jumpConsumed)
         {
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
@@ -270,6 +274,7 @@ public class Character : MonoBehaviour
             jumpWasCut = false;
             jumpReleased = false;
             jumpExecuted = true;
+            jumpCDTimer = jumpCooldown;
         }
     }
 
