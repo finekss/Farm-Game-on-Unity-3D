@@ -10,6 +10,7 @@ public class Character : MonoBehaviour
     #region CachedComponents
     private Rigidbody rb;
     private Collider col;
+    private CapsuleCollider capsule;
     private Camera cam;
     private InputSystem_Actions input;
     private Animator animator;
@@ -26,16 +27,40 @@ public class Character : MonoBehaviour
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 6f;
     [SerializeField] private float rotationSpeed = 720f;
+    [Tooltip("Время разгона до полной скорости (сек)")]
+    [SerializeField] private float accelerationTime = 0.1f;
+    [Tooltip("Время торможения до остановки (сек)")]
+    [SerializeField] private float decelerationTime = 0.25f;
     #endregion
 
     #region JumpSettings
     [Header("Jump")]
-    [SerializeField] private float jumpForce = 8f;
+    [SerializeField] private float jumpForce = 12f;
+    [Tooltip("Множитель обрезки вертикальной скорости при раннем отпускании (0.1 = короткий прыжок, 0.5 = средний)")]
+    [Range(0.05f, 0.9f)]
+    [SerializeField] private float jumpCutMultiplier = 0.35f;
     [SerializeField] private float coyoteTime = 0.12f;
     [SerializeField] private float jumpBufferTime = 0.15f;
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.2f;
     [SerializeField] private LayerMask groundLayer;
+
+    [Header("Gravity")]
+    [Tooltip("Множитель гравитации при падении (>1 = резче падение)")]
+    [SerializeField] private float fallGravityMultiplier = 2.5f;
+    [Tooltip("Множитель гравитации на вершине прыжка (делает дугу плавнее)")]
+    [SerializeField] private float apexGravityMultiplier = 1.2f;
+    [Tooltip("Порог скорости Y для зоны вершины прыжка")]
+    [SerializeField] private float apexThreshold = 1.5f;
+    [Tooltip("Максимальная скорость падения")]
+    [SerializeField] private float maxFallSpeed = 25f;
+
+    [Header("Collider In Air")]
+    [Tooltip("Множитель высоты коллайдера в прыжке (0.7 = сжимается на 30%)")]
+    [Range(0.3f, 1f)]
+    [SerializeField] private float airColliderHeightMul = 0.7f;
+    [Tooltip("Дополнительное смещение groundCheck относительно дна коллайдера в прыжке")]
+    [SerializeField] private Vector3 groundCheckAirOffset = new Vector3(0f, -0.05f, 0f);
     #endregion
 
     #region RollSettings
@@ -54,18 +79,11 @@ public class Character : MonoBehaviour
     public bool IsDead { get; private set; }
     #endregion
 
-    #region AttackSettings
-    [Header("Attack")]
-    [SerializeField] private int damage = 2;
-    [SerializeField] private float attackRange = 3f;
-    [SerializeField] private float attackRadius = 2f;
-    [SerializeField] private float attackCooldown = 0.4f;
-    [SerializeField] private LayerMask enemyLayer;
-    #endregion
 
     #region RuntimeState
     private Vector2 moveInput;
     private Vector3 moveDirection;
+    private Vector3 currentVelocityXZ;
     private Vector3 lastNonZeroDirection = Vector3.forward;
 
     private bool isGrounded;
@@ -75,10 +93,16 @@ public class Character : MonoBehaviour
 
     private bool isRolling;
     private bool isJumping;
+    private bool jumpButtonHeld;
+    private bool jumpWasCut;
+    private bool jumpReleased;
     private float rollCDTimer;
     private float invulTimer;
     private float attackCDTimer;
 
+    private float defaultColliderHeight;
+    private Vector3 defaultColliderCenter;
+    private Vector3 defaultGroundCheckLocalPos;
     #endregion
 
     #region Animator
@@ -112,6 +136,16 @@ public class Character : MonoBehaviour
         CurrentHealth = maxHealth;
         rb.freezeRotation = true;
         animator = animatorOverride != null ? animatorOverride : GetComponentInChildren<Animator>();
+
+        capsule = GetComponent<CapsuleCollider>();
+        if (capsule != null)
+        {
+            defaultColliderHeight = capsule.height;
+            defaultColliderCenter = capsule.center;
+        }
+
+        if (groundCheck != null)
+            defaultGroundCheckLocalPos = groundCheck.localPosition;
     }
 
     private void OnEnable() => input.Enable();
@@ -132,6 +166,9 @@ public class Character : MonoBehaviour
         CheckGround();
         ApplyMovement();
         ApplyJump();
+        ApplyJumpCut();
+        ApplyGravityModifiers();
+        UpdateCollider();
     }
     #endregion
 
@@ -156,6 +193,11 @@ public class Character : MonoBehaviour
             jumpBufferTimer = jumpBufferTime;
             jumpConsumed = false;
         }
+
+        // Фиксируем отпускание кнопки как событие — сохраняется до потребления в FixedUpdate
+        bool prevHeld = jumpButtonHeld;
+        jumpButtonHeld = input.Player.Jump.IsPressed();
+        if (prevHeld && !jumpButtonHeld) jumpReleased = true;
 
         if (input.Player.Roll.triggered && CanRoll()) StartCoroutine(RollRoutine());
     }
@@ -195,7 +237,15 @@ public class Character : MonoBehaviour
     private void ApplyMovement()
     {
         if (isRolling) return;
-        rb.linearVelocity = new Vector3(moveDirection.x * moveSpeed, rb.linearVelocity.y, moveDirection.z * moveSpeed);
+
+        Vector3 targetVelocity = new Vector3(moveDirection.x * moveSpeed, 0f, moveDirection.z * moveSpeed);
+        bool hasInput = moveDirection.sqrMagnitude > 0.01f;
+        float smoothTime = hasInput ? accelerationTime : decelerationTime;
+
+        currentVelocityXZ = Vector3.MoveTowards(currentVelocityXZ, targetVelocity, 
+            moveSpeed / Mathf.Max(smoothTime, 0.001f) * Time.fixedDeltaTime);
+
+        rb.linearVelocity = new Vector3(currentVelocityXZ.x, rb.linearVelocity.y, currentVelocityXZ.z);
     }
 
     private void RotateModel()
@@ -219,7 +269,78 @@ public class Character : MonoBehaviour
             jumpBufferTimer = 0f;
             coyoteTimer = 0f;
             isJumping = true;
+            jumpWasCut = false;
+            jumpReleased = false;
             jumpExecuted = true;
+        }
+    }
+
+    private void ApplyJumpCut()
+    {
+        if (!isJumping)
+        {
+            jumpReleased = false;
+            return;
+        }
+
+        if (jumpReleased && !jumpWasCut && rb.linearVelocity.y > 0.01f)
+        {
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, rb.linearVelocity.y * jumpCutMultiplier, rb.linearVelocity.z);
+            jumpWasCut = true;
+            jumpReleased = false;
+        }
+    }
+
+    private void ApplyGravityModifiers()
+    {
+        float vy = rb.linearVelocity.y;
+
+        if (vy < -0.01f)
+        {
+            // Падение — усиленная гравитация для резкого снижения
+            rb.linearVelocity += Vector3.up * Physics.gravity.y * (fallGravityMultiplier - 1f) * Time.fixedDeltaTime;
+
+            // Ограничиваем скорость падения
+            if (rb.linearVelocity.y < -maxFallSpeed)
+                rb.linearVelocity = new Vector3(rb.linearVelocity.x, -maxFallSpeed, rb.linearVelocity.z);
+        }
+        else if (Mathf.Abs(vy) < apexThreshold && !isGrounded)
+        {
+            // Вершина прыжка — лёгкая гравитация для «зависания»
+            rb.linearVelocity += Vector3.up * Physics.gravity.y * (apexGravityMultiplier - 1f) * Time.fixedDeltaTime;
+        }
+    }
+
+    private void UpdateCollider()
+    {
+        if (capsule == null) return;
+
+        if (!isGrounded)
+        {
+            float targetHeight = defaultColliderHeight * airColliderHeightMul;
+            capsule.height = targetHeight;
+            // Сжимаем снизу вверх — верх коллайдера остаётся на месте
+            float yShift = (defaultColliderHeight - targetHeight) * 0.5f;
+            capsule.center = defaultColliderCenter + Vector3.up * yShift;
+
+            // Перемещаем groundCheck к нижней точке коллайдера
+            if (groundCheck != null)
+            {
+                float bottomY = capsule.center.y - capsule.height * 0.5f;
+                groundCheck.localPosition = new Vector3(
+                    defaultGroundCheckLocalPos.x + groundCheckAirOffset.x,
+                    bottomY + groundCheckAirOffset.y,
+                    defaultGroundCheckLocalPos.z + groundCheckAirOffset.z
+                );
+            }
+        }
+        else
+        {
+            capsule.height = defaultColliderHeight;
+            capsule.center = defaultColliderCenter;
+
+            if (groundCheck != null)
+                groundCheck.localPosition = defaultGroundCheckLocalPos;
         }
     }
     #endregion
@@ -354,10 +475,6 @@ public class Character : MonoBehaviour
             Gizmos.color = isGrounded ? Color.green : Color.red;
             Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
         }
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, attackRange);
-        Gizmos.color = new Color(1f, 0.3f, 0f, 0.4f);
-        Gizmos.DrawWireSphere(transform.position, attackRadius);
     }
 #endif
     #endregion
