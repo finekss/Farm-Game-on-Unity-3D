@@ -1203,6 +1203,37 @@ Transform:
   - {fileID: 5863836392461917922}
   m_Father: {fileID: 7384519909497015494}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4852625155295699758
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2653239903822011158}
+  m_Layer: 0
+  m_Name: CameraPos
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2653239903822011158
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4852625155295699758}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.000000014901156, y: -0, z: -5.820764e-11, w: 1}
+  m_LocalPosition: {x: 0, y: 0.08800088, z: 0.10399999}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1271237639508031184}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5139868410334720851
 GameObject:
   m_ObjectHideFlags: 0
@@ -1313,7 +1344,7 @@ Animator:
   m_Controller: {fileID: 9100000, guid: 566a5d08f13e7e74eb860b0ff086341f, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
@@ -1697,10 +1728,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.22109601
-  m_Height: 1.79
+  m_Radius: 0.23728459
+  m_Height: 1.7625856
   m_Direction: 1
-  m_Center: {x: 0, y: 0.87, z: 0.05}
+  m_Center: {x: 0, y: 0.9, z: 0}
 --- !u!54 &3233746009248295680
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1740,7 +1771,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1086442b5f2239d49b970f063d6b07b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  model: {fileID: 760094616301903639}
+  model: {fileID: 3458752627456459611}
   animatorOverride: {fileID: 1544082513237421989}
   moveSpeed: 5
   rotationSpeed: 720
@@ -2072,7 +2103,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1271237639508031184}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: head.x
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2091,7 +2122,8 @@ Transform:
   m_LocalPosition: {x: -1.0736812e-10, y: 0.08487355, z: 0.000000008333064}
   m_LocalScale: {x: 1.0000001, y: 1.0000004, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 2653239903822011158}
   m_Father: {fileID: 1879270004239552705}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8156767602649246564

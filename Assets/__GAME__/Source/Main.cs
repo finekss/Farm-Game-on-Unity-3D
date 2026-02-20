@@ -62,7 +62,7 @@ public interface IFeature
 
 public class FeatureBase : IFeature
 {
-    protected Main main;
+    protected Main Main;
 
     public virtual void Start()
     {
@@ -70,7 +70,7 @@ public class FeatureBase : IFeature
 
     public virtual void Setup(Main main)
     {
-        this.main = main;
+        this.Main = main;
     }
 
     public virtual void Tick(float dt)

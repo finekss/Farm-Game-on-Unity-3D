@@ -1,10 +1,11 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 public class Character : MonoBehaviour
 {
-    public static Character player;
+    public static Character Player;
 
     #region CachedComponents
     private Rigidbody _rb;
@@ -16,65 +17,66 @@ public class Character : MonoBehaviour
     #endregion
 
     #region Model
+    [FormerlySerializedAs("_model")]
     [Header("Model")]
     [Tooltip("Корневой Transform 3D-модели персонажа (для поворота отдельно от корня)")]
-    [SerializeField] private Transform _model;
-    [SerializeField] private Animator _animatorOverride;
+    [SerializeField] private Transform model;
+    [SerializeField] private Animator animatorOverride;
     #endregion
 
     #region MovementSettings
     [Header("Movement")]
-    [SerializeField] private float _moveSpeed = 6f;
-    [SerializeField] private float _rotationSpeed = 720f;
+    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float rotationSpeed = 720f;
     [Tooltip("Время разгона до полной скорости (сек)")]
-    [SerializeField] private float _accelerationTime = 0.1f;
+    [SerializeField] private float accelerationTime = 0.1f;
     [Tooltip("Время торможения до остановки (сек)")]
-    [SerializeField] private float _decelerationTime = 0.25f;
+    [SerializeField] private float decelerationTime = 0.25f;
     #endregion
 
     #region JumpSettings
     [Header("Jump")]
-    [SerializeField] private float _jumpForce = 12f;
+    [SerializeField] private float jumpForce = 5f;
     [Tooltip("Множитель обрезки вертикальной скорости при раннем отпускании (0.1 = короткий прыжок)")]
     [Range(0.05f, 0.9f)]
-    [SerializeField] private float _jumpCutMultiplier = 0.35f;
-    [SerializeField] private float _coyoteTime = 0.12f;
-    [SerializeField] private float _jumpBufferTime = 0.15f;
-    [SerializeField] private float _jumpCooldown = 0.8f;
-    [SerializeField] private Transform _groundCheck;
-    [SerializeField] private float _groundCheckRadius = 0.2f;
-    [SerializeField] private LayerMask _groundLayer;
+    [SerializeField] private float jumpCutMultiplier = 0.35f;
+    [SerializeField] private float coyoteTime = 0.12f;
+    [SerializeField] private float jumpBufferTime = 0.15f;
+    [SerializeField] private float jumpCooldown = 0.8f;
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private float groundCheckRadius = 0.2f;
+    [SerializeField] private LayerMask groundLayer;
 
     [Header("Gravity")]
     [Tooltip("Множитель гравитации при падении (>1 = резче падение)")]
-    [SerializeField] private float _fallGravityMultiplier = 2.5f;
+    [SerializeField] private float fallGravityMultiplier = 2.5f;
     [Tooltip("Множитель гравитации на вершине прыжка (делает дугу плавнее)")]
-    [SerializeField] private float _apexGravityMultiplier = 1.2f;
+    [SerializeField] private float apexGravityMultiplier = 1.2f;
     [Tooltip("Порог скорости Y для зоны вершины прыжка")]
-    [SerializeField] private float _apexThreshold = 1.5f;
+    [SerializeField] private float apexThreshold = 1.5f;
     [Tooltip("Максимальная скорость падения")]
-    [SerializeField] private float _maxFallSpeed = 25f;
+    [SerializeField] private float maxFallSpeed = 25f;
 
     [Header("Collider In Air")]
     [Tooltip("Множитель высоты коллайдера в прыжке (0.7 = сжимается на 30%)")]
     [Range(0.3f, 1f)]
-    [SerializeField] private float _airColliderHeightMul = 0.7f;
+    [SerializeField] private float airColliderHeightMul = 0.7f;
     [Tooltip("Дополнительное смещение groundCheck относительно дна коллайдера в прыжке")]
-    [SerializeField] private Vector3 _groundCheckAirOffset = new Vector3(0f, -0.05f, 0f);
+    [SerializeField] private Vector3 groundCheckAirOffset = new Vector3(0f, -0.05f, 0f);
     #endregion
 
     #region RollSettings
     [Header("Roll")]
-    [SerializeField] private float _rollSpeed = 14f;
-    [SerializeField] private float _rollDuration = 0.35f;
-    [SerializeField] private float _rollCooldown = 0.8f;
-    [SerializeField] private float _rollInvulTime = 0.25f;
+    [SerializeField] private float rollSpeed = 14f;
+    [SerializeField] private float rollDuration = 0.35f;
+    [SerializeField] private float rollCooldown = 0.8f;
+    [SerializeField] private float rollInvulTime = 0.25f;
     #endregion
 
     #region HealthSettings
     [Header("Health")]
-    [SerializeField] private int _maxHealth = 10;
-    [SerializeField] private float _invulOnHitTime = 0.5f;
+    [SerializeField] private int maxHealth = 10;
+    [SerializeField] private float invulOnHitTime = 0.5f;
     public int CurrentHealth { get; private set; }
     public bool IsDead { get; private set; }
     #endregion
@@ -103,7 +105,6 @@ public class Character : MonoBehaviour
     private Vector3 _defaultColliderCenter;
     private Vector3 _defaultGroundCheckLocalPos;
 
-    // Отдельный флаг для FixedUpdate — не зависит от Update-фрейма
     private bool _prevGroundedFixed;
     #endregion
 
@@ -130,17 +131,17 @@ public class Character : MonoBehaviour
     #region Lifecycle
     private void Awake()
     {
-        player = this;
+        Player = this;
         _rb = GetComponent<Rigidbody>();
         _col = GetComponent<Collider>();
         _cam = Camera.main;
         _input = new InputSystem_Actions();
-        CurrentHealth = _maxHealth;
+        CurrentHealth = maxHealth;
         _rb.freezeRotation = true;
         _rb.isKinematic = false;
         _rb.useGravity = true;
         _rb.interpolation = RigidbodyInterpolation.Interpolate;
-        _animator = _animatorOverride != null ? _animatorOverride : GetComponentInChildren<Animator>();
+        _animator = animatorOverride != null ? animatorOverride : GetComponentInChildren<Animator>();
         if (_animator != null) _animator.applyRootMotion = false;
 
         _capsule = GetComponent<CapsuleCollider>();
@@ -150,8 +151,8 @@ public class Character : MonoBehaviour
             _defaultColliderCenter = _capsule.center;
         }
 
-        if (_groundCheck != null)
-            _defaultGroundCheckLocalPos = _groundCheck.localPosition;
+        if (groundCheck != null)
+            _defaultGroundCheckLocalPos = groundCheck.localPosition;
     }
 
     private void OnEnable()
@@ -173,20 +174,19 @@ public class Character : MonoBehaviour
         if (IsDead) return;
         ReadInput();
         TickTimers();
-        RotateModel();
         UpdateAnimator();
     }
 
     private void FixedUpdate()
     {
         if (IsDead) return;
-        Debug.Log($"[FixedUpdate] START: isRolling={_isRolling}, IsDead={IsDead}");
         CheckGround();
         ApplyMovement();
         ApplyJump();
         ApplyJumpCut();
         ApplyGravityModifiers();
         UpdateCollider();
+        RotateModel();
     }
     #endregion
 
@@ -206,13 +206,11 @@ public class Character : MonoBehaviour
         if (_moveDirection.sqrMagnitude > 1f) _moveDirection.Normalize();
         if (_moveDirection.sqrMagnitude > 0.01f) _lastNonZeroDirection = _moveDirection.normalized;
 
-        // DEBUG
-        if (_moveInput.sqrMagnitude > 0.01f)
-            Debug.Log($"[Input] moveInput={_moveInput}, moveDirection={_moveDirection}, rb.velocity.xz={new Vector2(_rb.linearVelocity.x, _rb.linearVelocity.z)}");
+        
 
         if (_input.Player.Jump.triggered)
         {
-            _jumpBufferTimer = _jumpBufferTime;
+            _jumpBufferTimer = jumpBufferTime;
             _jumpConsumed = false;
         }
 
@@ -240,18 +238,18 @@ public class Character : MonoBehaviour
     #region GroundCheck
     private void CheckGround()
     {
-        _isGrounded = _groundCheck != null && Physics.CheckSphere(_groundCheck.position, _groundCheckRadius, _groundLayer);
-        Debug.Log($"[CheckGround] isGrounded={_isGrounded}, groundCheck={(_groundCheck != null ? _groundCheck.position.ToString() : "null")}");
+        _isGrounded = groundCheck != null && Physics.CheckSphere(groundCheck.position, groundCheckRadius, groundLayer);
+        
 
         if (_isGrounded)
         {
-            _coyoteTimer = _coyoteTime;
+            _coyoteTimer = coyoteTime;
             _isJumping = false;
         }
         else if (_prevGroundedFixed)
         {
             // Только один раз при переходе с земли в воздух — запускаем coyote time
-            _coyoteTimer = _coyoteTime;
+            _coyoteTimer = coyoteTime;
         }
         _coyoteTimer = Mathf.Max(0f, _coyoteTimer - Time.fixedDeltaTime);
         _prevGroundedFixed = _isGrounded;
@@ -263,22 +261,27 @@ public class Character : MonoBehaviour
     {
         if (_isRolling) return;
 
-        Vector3 targetVelocity = new Vector3(_moveDirection.x * _moveSpeed, 0f, _moveDirection.z * _moveSpeed);
+        Vector3 targetVelocity = new Vector3(_moveDirection.x * moveSpeed, 0f, _moveDirection.z * moveSpeed);
         bool hasInput = _moveDirection.sqrMagnitude > 0.01f;
-        float smoothTime = hasInput ? _accelerationTime : _decelerationTime;
+        float smoothTime = hasInput ? accelerationTime : decelerationTime;
 
         _currentVelocityXZ = Vector3.MoveTowards(_currentVelocityXZ, targetVelocity, 
-            _moveSpeed / Mathf.Max(smoothTime, 0.001f) * Time.fixedDeltaTime);
+            moveSpeed / Mathf.Max(smoothTime, 0.001f) * Time.fixedDeltaTime);
 
         _rb.linearVelocity = new Vector3(_currentVelocityXZ.x, _rb.linearVelocity.y, _currentVelocityXZ.z);
     }
 
     private void RotateModel()
     {
-        if (_isRolling || _moveDirection.sqrMagnitude < 0.01f) return;
-        Quaternion target = Quaternion.LookRotation(_lastNonZeroDirection, Vector3.up);
-        Transform pivot = _model != null ? _model : transform;
-        pivot.rotation = Quaternion.RotateTowards(pivot.rotation, target, _rotationSpeed * Time.deltaTime);
+        Transform pivot = model != null ? model : transform;
+
+        Vector3 camForward = _cam.transform.forward;
+        camForward.y = 0f;        
+
+        Quaternion target = Quaternion.LookRotation(camForward.normalized, Vector3.up);
+        pivot.rotation = Quaternion.Slerp(pivot.rotation, target, rotationSpeed * Time.deltaTime);
+        
+
     }
     #endregion
 
@@ -289,7 +292,7 @@ public class Character : MonoBehaviour
         if (_jumpBufferTimer > 0f && canJump && !_jumpConsumed)
         {
             _rb.linearVelocity = new Vector3(_rb.linearVelocity.x, 0f, _rb.linearVelocity.z);
-            _rb.AddForce(Vector3.up * _jumpForce, ForceMode.Impulse);
+            _rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             _jumpConsumed = true;
             _jumpBufferTimer = 0f;
             _coyoteTimer = 0f;
@@ -297,7 +300,7 @@ public class Character : MonoBehaviour
             _jumpWasCut = false;
             _jumpReleased = false;
             _jumpExecuted = true;
-            _jumpCDTimer = _jumpCooldown;
+            _jumpCDTimer = jumpCooldown;
         }
     }
 
@@ -311,7 +314,7 @@ public class Character : MonoBehaviour
 
         if (_jumpReleased && !_jumpWasCut && _rb.linearVelocity.y > 0.01f)
         {
-            _rb.linearVelocity = new Vector3(_rb.linearVelocity.x, _rb.linearVelocity.y * _jumpCutMultiplier, _rb.linearVelocity.z);
+            _rb.linearVelocity = new Vector3(_rb.linearVelocity.x, _rb.linearVelocity.y * jumpCutMultiplier, _rb.linearVelocity.z);
             _jumpWasCut = true;
             _jumpReleased = false;
         }
@@ -324,16 +327,16 @@ public class Character : MonoBehaviour
         if (vy < -0.01f)
         {
             // Падение — усиленная гравитация для резкого снижения
-            _rb.linearVelocity += Vector3.up * Physics.gravity.y * (_fallGravityMultiplier - 1f) * Time.fixedDeltaTime;
+            _rb.linearVelocity += Vector3.up * Physics.gravity.y * (fallGravityMultiplier - 1f) * Time.fixedDeltaTime;
 
             // Ограничиваем скорость падения
-            if (_rb.linearVelocity.y < -_maxFallSpeed)
-                _rb.linearVelocity = new Vector3(_rb.linearVelocity.x, -_maxFallSpeed, _rb.linearVelocity.z);
+            if (_rb.linearVelocity.y < -maxFallSpeed)
+                _rb.linearVelocity = new Vector3(_rb.linearVelocity.x, -maxFallSpeed, _rb.linearVelocity.z);
         }
-        else if (Mathf.Abs(vy) < _apexThreshold && !_isGrounded)
+        else if (Mathf.Abs(vy) < apexThreshold && !_isGrounded)
         {
             // Вершина прыжка — лёгкая гравитация для «зависания»
-            _rb.linearVelocity += Vector3.up * Physics.gravity.y * (_apexGravityMultiplier - 1f) * Time.fixedDeltaTime;
+            _rb.linearVelocity += Vector3.up * Physics.gravity.y * (apexGravityMultiplier - 1f) * Time.fixedDeltaTime;
         }
     }
 
@@ -343,20 +346,20 @@ public class Character : MonoBehaviour
 
         if (!_isGrounded)
         {
-            float targetHeight = _defaultColliderHeight * _airColliderHeightMul;
+            float targetHeight = _defaultColliderHeight * airColliderHeightMul;
             _capsule.height = targetHeight;
             // Сжимаем снизу вверх — верх коллайдера остаётся на месте
             float yShift = (_defaultColliderHeight - targetHeight) * 0.5f;
             _capsule.center = _defaultColliderCenter + Vector3.up * yShift;
 
             // Перемещаем groundCheck к нижней точке коллайдера
-            if (_groundCheck != null)
+            if (groundCheck != null)
             {
                 float bottomY = _capsule.center.y - _capsule.height * 0.5f;
-                _groundCheck.localPosition = new Vector3(
-                    _defaultGroundCheckLocalPos.x + _groundCheckAirOffset.x,
-                    bottomY + _groundCheckAirOffset.y,
-                    _defaultGroundCheckLocalPos.z + _groundCheckAirOffset.z
+                groundCheck.localPosition = new Vector3(
+                    _defaultGroundCheckLocalPos.x + groundCheckAirOffset.x,
+                    bottomY + groundCheckAirOffset.y,
+                    _defaultGroundCheckLocalPos.z + groundCheckAirOffset.z
                 );
             }
         }
@@ -365,8 +368,8 @@ public class Character : MonoBehaviour
             _capsule.height = _defaultColliderHeight;
             _capsule.center = _defaultColliderCenter;
 
-            if (_groundCheck != null)
-                _groundCheck.localPosition = _defaultGroundCheckLocalPos;
+            if (groundCheck != null)
+                groundCheck.localPosition = _defaultGroundCheckLocalPos;
         }
     }
     #endregion
@@ -377,7 +380,7 @@ public class Character : MonoBehaviour
     private IEnumerator RollRoutine()
     {
         _isRolling = true;
-        _invulTimer = _rollInvulTime;
+        _invulTimer = rollInvulTime;
         _input.Disable();
         TriggerAnimator(RollTriggerHash);
 
@@ -388,9 +391,9 @@ public class Character : MonoBehaviour
         // выполнятся, даже если корутина прервана (смерть, деактивация, исключение)
         try
         {
-            while (elapsed < _rollDuration)
+            while (elapsed < rollDuration)
             {
-                _rb.linearVelocity = new Vector3(rollDir.x * _rollSpeed, _rb.linearVelocity.y, rollDir.z * _rollSpeed);
+                _rb.linearVelocity = new Vector3(rollDir.x * rollSpeed, _rb.linearVelocity.y, rollDir.z * rollSpeed);
                 elapsed += Time.deltaTime;
                 yield return null;
             }
@@ -399,7 +402,7 @@ public class Character : MonoBehaviour
         {
             _input.Enable();
             _isRolling = false;
-            _rollCDTimer = _rollCooldown;
+            _rollCDTimer = rollCooldown;
         }
     }
     #endregion
@@ -409,7 +412,7 @@ public class Character : MonoBehaviour
     {
         if (_invulTimer > 0f || IsDead) return;
         CurrentHealth -= dmg;
-        _invulTimer = _invulOnHitTime;
+        _invulTimer = invulOnHitTime;
         TriggerAnimator(HurtTriggerHash);
         if (CurrentHealth <= 0) Die();
     }
@@ -505,10 +508,10 @@ public class Character : MonoBehaviour
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
-        if (_groundCheck != null)
+        if (groundCheck != null)
         {
             Gizmos.color = _isGrounded ? Color.green : Color.red;
-            Gizmos.DrawWireSphere(_groundCheck.position, _groundCheckRadius);
+            Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
         }
     }
 #endif
