@@ -71,11 +71,18 @@ public class PlayerCameraController : MonoBehaviour
         smoothPitch = Mathf.SmoothDampAngle(smoothPitch, pitch, ref pitchVelocity, rotationSmoothTime);
 
         Quaternion cameraRot = Quaternion.Euler(smoothPitch, smoothYaw, 0f);
-        Vector3 desiredPos = headBone != null
-            ? headBone.position + headBone.TransformDirection(headCameraOffset)
-            : target.TransformPoint(cameraLocalOffset);
 
-        transform.position = Vector3.SmoothDamp(transform.position, desiredPos, ref positionVelocity, positionSmoothTime);
+        // Камера сидит точно в кости головы — SmoothDamp сглаживает движение
+        if (headBone != null)
+        {
+            Vector3 desiredPos = headBone.position + headBone.TransformDirection(headCameraOffset);
+            transform.position = Vector3.SmoothDamp(transform.position, desiredPos, ref positionVelocity, positionSmoothTime);
+        }
+        else
+        {
+            Vector3 desiredPos = target.TransformPoint(cameraLocalOffset);
+            transform.position = Vector3.SmoothDamp(transform.position, desiredPos, ref positionVelocity, positionSmoothTime);
+        }
         transform.rotation = cameraRot;
 
         if (rotateTargetWithCamera)

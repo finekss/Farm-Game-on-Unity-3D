@@ -79,7 +79,6 @@ public class Character : MonoBehaviour
     public bool IsDead { get; private set; }
     #endregion
 
-
     #region RuntimeState
     private Vector2 moveInput;
     private Vector3 moveDirection;
@@ -98,7 +97,6 @@ public class Character : MonoBehaviour
     private bool jumpReleased;
     private float rollCDTimer;
     private float invulTimer;
-    private float attackCDTimer;
 
     private float defaultColliderHeight;
     private Vector3 defaultColliderCenter;
@@ -135,6 +133,7 @@ public class Character : MonoBehaviour
         input = new InputSystem_Actions();
         CurrentHealth = maxHealth;
         rb.freezeRotation = true;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
         animator = animatorOverride != null ? animatorOverride : GetComponentInChildren<Animator>();
 
         capsule = GetComponent<CapsuleCollider>();
@@ -209,7 +208,6 @@ public class Character : MonoBehaviour
         float dt = Time.deltaTime;
         invulTimer = Mathf.Max(0f, invulTimer - dt);
         rollCDTimer = Mathf.Max(0f, rollCDTimer - dt);
-        attackCDTimer = Mathf.Max(0f, attackCDTimer - dt);
         jumpBufferTimer = Mathf.Max(0f, jumpBufferTimer - dt);
     }
     #endregion
