@@ -137,10 +137,6 @@ public class Character : MonoBehaviour
         _cam = Camera.main;
         _input = new InputSystem_Actions();
         CurrentHealth = maxHealth;
-        _rb.freezeRotation = true;
-        _rb.isKinematic = false;
-        _rb.useGravity = true;
-        _rb.interpolation = RigidbodyInterpolation.Interpolate;
         _animator = animatorOverride != null ? animatorOverride : GetComponentInChildren<Animator>();
         if (_animator != null) _animator.applyRootMotion = false;
 
@@ -174,11 +170,12 @@ public class Character : MonoBehaviour
         if (IsDead) return;
         ReadInput();
         TickTimers();
-        UpdateAnimator();
+
     }
 
     private void FixedUpdate()
     {
+        
         if (IsDead) return;
         CheckGround();
         ApplyMovement();
@@ -187,6 +184,7 @@ public class Character : MonoBehaviour
         ApplyGravityModifiers();
         UpdateCollider();
         RotateModel();
+        UpdateAnimator();
     }
     #endregion
 
@@ -279,9 +277,7 @@ public class Character : MonoBehaviour
         camForward.y = 0f;        
 
         Quaternion target = Quaternion.LookRotation(camForward.normalized, Vector3.up);
-        pivot.rotation = Quaternion.Slerp(pivot.rotation, target, rotationSpeed * Time.deltaTime);
-        
-
+        pivot.rotation = Quaternion.Slerp(pivot.rotation, target, rotationSpeed * Time.fixedDeltaTime);
     }
     #endregion
 

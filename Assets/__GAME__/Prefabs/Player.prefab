@@ -470,6 +470,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1271237639508031184}
+  - {fileID: 2653239903822011158}
   m_Father: {fileID: 2618455359146687264}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1320477283949173033
@@ -1227,12 +1228,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4852625155295699758}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.000000014901156, y: -0, z: -5.820764e-11, w: 1}
-  m_LocalPosition: {x: 0, y: 0.08800088, z: 0.10399999}
+  m_LocalRotation: {x: -0.085370734, y: 0.0067354566, z: 0.0005713218, w: 0.9963263}
+  m_LocalPosition: {x: 0.001, y: 0.177, z: 0.143}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1271237639508031184}
+  m_Father: {fileID: 1879270004239552705}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5139868410334720851
 GameObject:
@@ -1343,7 +1344,7 @@ Animator:
   m_Avatar: {fileID: 9000000, guid: 24fc2c3e62c52bf4e9e63fd980b8e85d, type: 3}
   m_Controller: {fileID: 9100000, guid: 566a5d08f13e7e74eb860b0ff086341f, type: 2}
   m_CullingMode: 0
-  m_UpdateMode: 0
+  m_UpdateMode: 1
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
@@ -1799,6 +1800,8 @@ MonoBehaviour:
   rollInvulTime: 0
   maxHealth: 10
   invulOnHitTime: 0.5
+  headColliders: []
+  cameraCollisionDistance: 0.5
 --- !u!1 &6787760646119619689
 GameObject:
   m_ObjectHideFlags: 0
@@ -2122,8 +2125,7 @@ Transform:
   m_LocalPosition: {x: -1.0736812e-10, y: 0.08487355, z: 0.000000008333064}
   m_LocalScale: {x: 1.0000001, y: 1.0000004, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 2653239903822011158}
+  m_Children: []
   m_Father: {fileID: 1879270004239552705}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8156767602649246564
