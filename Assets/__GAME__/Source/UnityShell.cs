@@ -2,17 +2,16 @@ using UnityEngine;
 
 public class UnityShell : MonoBehaviour
 {
-    public static Main main;
+    public static Main Main;
 
     void Start()
     {
-        main = new Main();
-       
-        main.Start();
+        Main = new Main();
+        Main.Start();
     }
 
     void FixedUpdate()
     {
-        main.Tick(Time.fixedDeltaTime);
+        Main.Tick(Time.fixedDeltaTime);
     }
 }

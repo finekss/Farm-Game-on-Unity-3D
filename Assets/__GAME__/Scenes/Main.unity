@@ -119,6 +119,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!4 &64376343 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8327683810090312032, guid: 5e7ed8c0995cca845b14e1cd77ca689f, type: 3}
+  m_PrefabInstance: {fileID: 7230946290447375223}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &258913483
 GameObject:
   m_ObjectHideFlags: 0
@@ -150,6 +155,56 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &261960504 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6568756908454557102, guid: 5e7ed8c0995cca845b14e1cd77ca689f, type: 3}
+  m_PrefabInstance: {fileID: 7230946290447375223}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &261960509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 261960504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64b0509b692b4200b9ccc144ffe49f8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
+--- !u!114 &261960510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 261960504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a63bd8ba60224a20b43d9b75a096930e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterController
+  groundCheck: {fileID: 64376343}
+  groundCheckRadius: 0.2
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  airColliderHeightMul: 1
+  groundCheckAirOffset: {x: 0, y: -0.05, z: 0}
+--- !u!114 &261960511
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 261960504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 144da557d648d42458e2796e6b6ab56a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
+  maxHealth: 10
+  invulOnHitTime: 0.5
 --- !u!4 &277957792 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2653239903822011158, guid: 5e7ed8c0995cca845b14e1cd77ca689f, type: 3}
@@ -1127,7 +1182,16 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6568756908454557102, guid: 5e7ed8c0995cca845b14e1cd77ca689f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 261960510}
+    - targetCorrespondingSourceObject: {fileID: 6568756908454557102, guid: 5e7ed8c0995cca845b14e1cd77ca689f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 261960509}
+    - targetCorrespondingSourceObject: {fileID: 6568756908454557102, guid: 5e7ed8c0995cca845b14e1cd77ca689f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 261960511}
   m_SourcePrefab: {fileID: 100100000, guid: 5e7ed8c0995cca845b14e1cd77ca689f, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
