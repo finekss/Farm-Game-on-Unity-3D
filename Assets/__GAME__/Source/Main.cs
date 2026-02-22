@@ -4,6 +4,52 @@ using UnityEngine;
 
 public class GameData
 {
+    public bool hasSave;
+
+    public SerializableVector3 playerPosition;
+    public SerializableQuaternion playerRotation;
+    
+    [System.Serializable]
+    public struct SerializableVector3
+    {
+        public float x;
+        public float y;
+        public float z;
+
+        public SerializableVector3(Vector3 v)
+        {
+            x = v.x;
+            y = v.y;
+            z = v.z;
+        }
+
+        public Vector3 ToVector3()
+        {
+            return new Vector3(x, y, z);
+        }
+    }
+    
+    [System.Serializable]
+    public struct SerializableQuaternion
+    {
+        public float x;
+        public float y;
+        public float z;
+        public float w;
+
+        public SerializableQuaternion(Quaternion q)
+        {
+            x = q.x;
+            y = q.y;
+            z = q.z;
+            w = q.w;
+        }
+
+        public Quaternion ToQuaternion()
+        {
+            return new Quaternion(x, y, z, w);
+        }
+    }
 }
 
 public class Main
@@ -13,8 +59,8 @@ public class Main
 
     public void Start()
     {
-        var jsopn = PlayerPrefs.GetString("save", "{}");
-        data = JsonConvert.DeserializeObject<GameData>(jsopn);
+        var jsonOpen = PlayerPrefs.GetString("save", "{}");
+        data = JsonConvert.DeserializeObject<GameData>(jsonOpen);
 
         foreach (var f in features)
             f.Start();

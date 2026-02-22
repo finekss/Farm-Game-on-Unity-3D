@@ -1,17 +1,30 @@
+using __GAME__.Source.Features;
 using UnityEngine;
 
 public class UnityShell : MonoBehaviour
 {
-    public static Main Main;
+    public static Main main;
 
     void Start()
     {
-        Main = new Main();
-        Main.Start();
+        main = new Main();
+        
+        main.Add<EventBus>();
+        main.Add<GameStateMachine>();
+        main.Add<TimeSystem>();
+        main.Add<GameManager>();
+        main.Add<PlayerFeature>();
+        
+        main.Start();
     }
 
     void FixedUpdate()
     {
-        Main.Tick(Time.fixedDeltaTime);
+        main.Tick(Time.fixedDeltaTime);
+    }
+    
+    void OnApplicationQuit()
+    {
+        main.Save();
     }
 }
