@@ -1,9 +1,7 @@
 using System;
 using UnityEngine;
 
-
-/// Здоровье персонажа. Самодостаточный компонент.
-/// Не знает о движении, анимациях, инпуте — сообщает о событиях через делегаты.
+/// Здоровье персонажа
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -26,28 +24,26 @@ public class PlayerHealth : MonoBehaviour
 
     #region Events
 
-    /// <summary>Вызывается при получении урона (после снятия HP).</summary>
+    ///Вызывается при получении урона (после снятия HP)
     public event Action<int> OnDamaged;
 
-    /// <summary>Вызывается при смерти.</summary>
+    /// Вызывается при смерти
     public event Action OnDied;
 
     #endregion
 
     #region PublicAPI
 
-    /// <summary>Инициализация. Вызывается из PlayerController.Awake().</summary>
+    ///Инициализация. Вызывается из PlayerController.Awake()
     public void Initialize()
     {
         CurrentHealth = maxHealth;
         IsDead = false;
         _invulTimer = 0f;
     }
-
-    /// <summary>
-    /// Установить неуязвимость на указанное время (например, при подкате).
-    /// Берётся максимум из текущего остатка и нового значения.
-    /// </summary>
+    
+    /// Установить неуязвимость на указанное время (например, при подкате)
+    /// Берётся максимум из текущего остатка и нового значения
     public void SetInvulnerable(float time)
     {
         _invulTimer = Mathf.Max(_invulTimer, time);

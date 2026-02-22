@@ -1,10 +1,7 @@
 using UnityEngine;
 
-/// <summary>
-/// Слой абстракции ввода.
 /// Читает Input System, конвертирует в команды.
-/// Не знает о состояниях, стамине, возможности действий.
-/// </summary>
+
 public class PlayerInputHandler : MonoBehaviour
 {
     private InputSystem_Actions _input;
@@ -12,25 +9,21 @@ public class PlayerInputHandler : MonoBehaviour
 
     #region PublicAPI
 
-    /// <summary>Сырой 2D-вектор ввода движения.</summary>
+    /// Сырой 2D-вектор ввода движения
     public Vector2 RawMoveInput { get; private set; }
 
-    /// <summary>Направление движения в мировых координатах (с учётом камеры).</summary>
+    /// Направление движения в мировых координатах (с учётом камеры)
     public Vector3 MoveDirection { get; private set; }
 
-    /// <summary>Последнее ненулевое направление (для рывка и т.п.).</summary>
+    /// Последнее направление
     public Vector3 LastNonZeroDirection { get; private set; } = Vector3.forward;
-
-    /// <summary>Кнопка прыжка нажата в этом кадре.</summary>
+    
     public bool JumpPressed { get; private set; }
-
-    /// <summary>Кнопка прыжка отпущена в этом кадре.</summary>
+    
     public bool JumpReleased { get; private set; }
-
-    /// <summary>Кнопка прыжка удерживается.</summary>
+    
     public bool JumpHeld { get; private set; }
-
-    /// <summary>Кнопка подката нажата в этом кадре.</summary>
+    
     public bool RollPressed { get; private set; }
 
     #endregion
@@ -55,10 +48,8 @@ public class PlayerInputHandler : MonoBehaviour
     #endregion
 
     #region ReadInput
-
-    /// <summary>
+    
     /// Чтение ввода. Вызывается каждый Update из PlayerController.
-    /// </summary>
     public void ReadInput()
     {
         // ── Movement ──

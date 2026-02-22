@@ -1,10 +1,8 @@
 using UnityEngine;
 
-/// <summary>
 /// Двигательный интерфейс персонажа.
 /// Капсула коллизии, проверка земли, применение перемещения через Rigidbody.
 /// Не знает об input, состояниях, анимациях, прыжках.
-/// </summary>
 public class CharacterController : MonoBehaviour
 {
     #region Settings
