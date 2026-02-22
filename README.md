@@ -173,33 +173,6 @@ Future plan: migrate to file-based save system.
 
 ---
 
-# 📂 Project Structure
-Source
-├── Core
-│ ├── Main.cs
-│ ├── IFeature.cs
-│
-├── Save
-│ ├── GameData.cs
-│ ├── SerializableVector3.cs
-│ ├── SerializableQuaternion.cs
-│
-├── Features
-│ ├── EventBus.cs
-│ ├── GameManager.cs
-│ ├── GameStateMachine.cs
-│ ├── TimeSystem.cs
-│ ├── PlayerFeature.cs
-├──Unity
-│ ├── Player
-│   ├── PlayerController.cs
-│   ├── PlayerInputHandler.cs
-│   ├── CharacterController.cs
-│ ├── Sfx
-
-
----
-
 # 🚀 Current Status
 
 - ✔ Player controller implemented  
@@ -250,14 +223,4 @@ Feel free to fork and explore.
 
 # 📜 License
 
-MIT (recommended for open development)
-
----
-
-# 💡 Philosophy
-
-This project is not just a game.
-
-It is an architectural playground exploring how to build:
-
-> A cosy sandbox game with scalable systems and clean code.
+MIT
