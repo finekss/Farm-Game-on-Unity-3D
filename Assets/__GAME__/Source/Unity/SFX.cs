@@ -36,8 +36,11 @@ public class SFX : MonoBehaviour
     {
         if (clip == null)
             return;
-        
-        var transformPosition = Camera.main.transform.position + Vector3.forward;
-        AudioSource.PlayClipAtPoint(clip, transformPosition, vol * SFXVOL);
+
+        if (Camera.main != null)
+        {
+            var transformPosition = Camera.main.transform.position + Vector3.forward;
+            AudioSource.PlayClipAtPoint(clip, transformPosition, vol * SFXVOL);
+        }
     }
 }

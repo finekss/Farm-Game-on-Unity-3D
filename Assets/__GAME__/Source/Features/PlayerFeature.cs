@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using __GAME__.Source.Save;
+using UnityEngine;
 
 namespace __GAME__.Source.Features
 {
@@ -20,10 +21,9 @@ namespace __GAME__.Source.Features
 
         private void LoadPlayerPosition()
         {
-            if (Main.data.hasSave)
+            if (Main.data.HasSave)
             {
-                _playerTransform.position = Main.data.playerPosition.ToVector3();
-                _playerTransform.rotation = Main.data.playerRotation.ToQuaternion();
+                _playerTransform.position = Main.data.PlayerPosition.ToVector3();
             }
         }
 
@@ -32,10 +32,9 @@ namespace __GAME__.Source.Features
             if (_playerTransform == null)
                 return;
 
-            Main.data.hasSave = true;
+            Main.data.HasSave = true;
 
-            Main.data.playerPosition = new GameData.SerializableVector3(_playerTransform.position);
-            Main.data.playerRotation = new GameData.SerializableQuaternion(_playerTransform.rotation);
+            Main.data.PlayerPosition = new SerializableVector3(_playerTransform.position);
         }
     }
 }
