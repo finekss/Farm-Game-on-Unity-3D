@@ -20,11 +20,15 @@ public class PlayerInputHandler : MonoBehaviour
     
     public bool JumpPressed { get; private set; }
     
+    public bool InteractPressed { get; private set; }
+    
     public bool JumpReleased { get; private set; }
     
     public bool JumpHeld { get; private set; }
     
     public bool RollPressed { get; private set; }
+    
+    public bool InventoryPressed { get; private set; }
 
     #endregion
 
@@ -78,6 +82,12 @@ public class PlayerInputHandler : MonoBehaviour
 
         // ── Roll ──
         RollPressed = _input.Player.Roll.triggered;
+        
+        // ── Interact ──
+        InteractPressed = _input.Player.Interact.triggered;
+        
+        // ── Inventory ──
+        InventoryPressed = _input.Player.Inventory.triggered;
     }
 
     #endregion

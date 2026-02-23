@@ -12,7 +12,6 @@ namespace __GAME__.Source.Features
         {
             _bus = Main.Get<EventBus>();
 
-            // Находим игрока в сцене
             var player = GameObject.FindWithTag("Player");
             _playerTransform = player.transform;
 

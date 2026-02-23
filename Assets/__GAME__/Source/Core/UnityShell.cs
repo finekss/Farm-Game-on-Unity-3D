@@ -14,6 +14,7 @@ public class UnityShell : MonoBehaviour
         main.Add<TimeSystem>();
         main.Add<GameManager>();
         main.Add<PlayerFeature>();
+        main.Add<InventoryFeature>();
         
         main.Start();
     }

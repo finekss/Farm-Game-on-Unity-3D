@@ -1686,6 +1686,9 @@ GameObject:
   - component: {fileID: 6991162629803126293}
   - component: {fileID: 3233746009248295680}
   - component: {fileID: 8256886838699578516}
+  - component: {fileID: 1106260547469342750}
+  - component: {fileID: 866900842808883462}
+  - component: {fileID: 7586409351060648611}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -1783,25 +1786,59 @@ MonoBehaviour:
   coyoteTime: 0.15
   jumpBufferTime: 0.15
   jumpCooldown: 0.9
-  groundCheck: {fileID: 8327683810090312032}
-  groundCheckRadius: 0.05
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 64
   fallGravityMultiplier: 2.5
   apexGravityMultiplier: 1
   apexThreshold: 1
   maxFallSpeed: 25
-  airColliderHeightMul: 1
-  groundCheckAirOffset: {x: 0, y: -0.05, z: 0}
   rollSpeed: 10
   rollDuration: 0.35
   rollCooldown: 0
   rollInvulTime: 0
+--- !u!114 &1106260547469342750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6568756908454557102}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a63bd8ba60224a20b43d9b75a096930e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterController
+  groundCheck: {fileID: 8327683810090312032}
+  groundCheckRadius: 0.2
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  airColliderHeightMul: 1
+  groundCheckAirOffset: {x: 0, y: -0.05, z: 0}
+--- !u!114 &866900842808883462
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6568756908454557102}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64b0509b692b4200b9ccc144ffe49f8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
+--- !u!114 &7586409351060648611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6568756908454557102}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 144da557d648d42458e2796e6b6ab56a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   maxHealth: 10
   invulOnHitTime: 0.5
-  headColliders: []
-  cameraCollisionDistance: 0.5
 --- !u!1 &6787760646119619689
 GameObject:
   m_ObjectHideFlags: 0

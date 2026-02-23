@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using __GAME__.Source.Save;
 using Newtonsoft.Json;
@@ -5,10 +6,19 @@ using UnityEngine;
 
 
 public class Main
-{
-    public GameData data = new GameData();
+{   
+    private Dictionary<Type, object> services = new();
+    public static GameData data = new GameData();
     public List<IFeature> features = new List<IFeature>();
-
+    
+    
+    public static Main Instance { get; private set; }
+    
+    public Main()
+    {
+        Instance = this;
+        data = new GameData();
+    }
     public void Start()
     {
         var jsonOpen = PlayerPrefs.GetString("save", "{}");
@@ -37,6 +47,15 @@ public class Main
             if (f is T ft)
                 return ft;
         return null;
+    }
+    public void RegisterService<T>(T service)
+    {
+        services[typeof(T)] = service;
+    }
+
+    public T GetService<T>()
+    {
+        return (T)services[typeof(T)];
     }
 
     public void Save()
